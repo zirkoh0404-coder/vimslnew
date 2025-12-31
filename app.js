@@ -198,7 +198,7 @@ app.post('/admin/add-to-roster', async (req, res) => {
 
 app.post('/admin/add-story', async (req, res) => {
     const info = await getInfo();
-    info.stories.push({ ...req.body, id: Date.now(), date: new Date().toLocaleDateString() });
+    info.stories.push({ ...req.body, id: Date.now().toString(), date: new Date().toLocaleDateString() });
     await info.save();
     res.redirect('/admin');
 });
@@ -214,33 +214,66 @@ app.post('/admin/update-stat', async (req, res) => {
     res.redirect('/admin');
 });
 
-// --- THE FIX: ADDING ALL DELETE ROUTES ---
+// --- NEW FIXES FOR MISSING ROUTES ---
 
-// Handle Delete Match
+// Add Record
+app.post('/admin/add-record', async (req, res) => {
+    if (!req.session.isAdmin) return res.redirect('/admin-login');
+    const info = await getInfo();
+    info.records.push({ ...req.body, id: Date.now().toString() });
+    await info.save();
+    res.redirect('/admin');
+});
+
+// Delete Stat from Leaderboard
+app.post('/admin/delete-stat', async (req, res) => {
+    if (!req.session.isAdmin) return res.redirect('/admin-login');
+    const { type, index } = req.body;
+    const info = await getInfo();
+    if (info.leaderboards[type]) {
+        info.leaderboards[type].splice(index, 1);
+        info.markModified('leaderboards');
+        await info.save();
+    }
+    res.redirect('/admin');
+});
+
+// Delete Team from Standings
+app.post('/admin/delete-team', async (req, res) => {
+    if (!req.session.isAdmin) return res.redirect('/admin-login');
+    const { groupId, teamIndex } = req.body;
+    const group = await Group.findById(groupId);
+    if (group && group.teams[teamIndex]) {
+        group.teams.splice(teamIndex, 1);
+        await group.save();
+    }
+    res.redirect('/admin');
+});
+
+// Delete Match
 app.post('/admin/delete-match', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/admin-login');
     await Match.findByIdAndDelete(req.body.matchId);
     res.redirect('/admin');
 });
 
-// Handle Delete Player
+// Delete Player
 app.post('/admin/delete-player', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/admin-login');
     await Player.findByIdAndDelete(req.body.playerId);
     res.redirect('/admin');
 });
 
-// Handle Delete Story
+// Delete Story (Improved ID check)
 app.post('/admin/delete-story', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/admin-login');
     const info = await getInfo();
-    // Use the ID generated during creation to filter out the story
     info.stories = info.stories.filter(s => s.id != req.body.storyId);
     await info.save();
     res.redirect('/admin');
 });
 
-// Handle Delete Group
+// Delete Group
 app.post('/admin/delete-group', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/admin-login');
     await Group.findByIdAndDelete(req.body.groupId);
