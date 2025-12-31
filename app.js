@@ -194,6 +194,31 @@ app.post('/admin/update-team', async (req, res) => {
     res.redirect('/admin');
 });
 
+// --- TEAM DETAILS PAGE ---
+app.get('/team/:groupId/:teamIndex', async (req, res) => {
+    try {
+        const { groupId, teamIndex } = req.params;
+        const group = await Group.findById(groupId);
+        
+        // Safety check: make sure the group and the specific team exist
+        if (!group || !group.teams[teamIndex]) {
+            return res.redirect('/metrics?error=Team not found');
+        }
+
+        const team = group.teams[teamIndex];
+
+        // This renders your new template and passes the 'team' and 'group' data to it
+        res.render('team-details', { 
+            team, 
+            group, 
+            page: 'metrics' 
+        });
+    } catch (err) {
+        console.error("Team Page Error:", err);
+        res.redirect('/metrics');
+    }
+});
+
 app.post('/admin/add-to-roster', async (req, res) => {
     const { groupId, teamIndex, playerName, isManager } = req.body;
     const player = await Player.findOne({ name: new RegExp(`^${playerName}$`, 'i') });
