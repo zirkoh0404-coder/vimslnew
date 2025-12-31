@@ -127,6 +127,16 @@ app.post('/login', async (req, res) => {
 });
 app.get('/logout', (req, res) => { req.session.destroy(); res.redirect('/'); });
 
+// --- PLAYER PROFILE UPDATE ---
+app.post('/profile/update', async (req, res) => {
+    try {
+        if (!req.session.playerId) return res.redirect('/market?error=Please login first');
+        const { bio, experience, discord } = req.body;
+        await Player.findByIdAndUpdate(req.session.playerId, { bio, experience, discord });
+        res.redirect('/profile');
+    } catch (err) { res.redirect('/profile?error=Update failed'); }
+});
+
 // --- ADMIN / DATA UPDATES ---
 app.post('/admin/live', async (req, res) => {
     const info = await getInfo();
@@ -203,6 +213,14 @@ app.post('/admin/add-story', async (req, res) => {
     res.redirect('/admin');
 });
 
+app.post('/admin/add-record', async (req, res) => {
+    if (!req.session.isAdmin) return res.redirect('/admin-login');
+    const info = await getInfo();
+    info.records.push({ ...req.body, id: Date.now().toString() });
+    await info.save();
+    res.redirect('/admin');
+});
+
 app.post('/admin/update-stat', async (req, res) => {
     const { type, statIndex, playerName, value } = req.body;
     const info = await getInfo();
@@ -214,18 +232,35 @@ app.post('/admin/update-stat', async (req, res) => {
     res.redirect('/admin');
 });
 
-// --- NEW FIXES FOR MISSING ROUTES ---
+// --- DELETE ROUTES ---
+app.post('/admin/delete-match', async (req, res) => {
+    if (!req.session.isAdmin) return res.redirect('/admin-login');
+    await Match.findByIdAndDelete(req.body.matchId);
+    res.redirect('/admin');
+});
 
-// Add Record
-app.post('/admin/add-record', async (req, res) => {
+app.post('/admin/delete-player', async (req, res) => {
+    if (!req.session.isAdmin) return res.redirect('/admin-login');
+    await Player.findByIdAndDelete(req.body.playerId);
+    res.redirect('/admin');
+});
+
+app.post('/admin/delete-story', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/admin-login');
     const info = await getInfo();
-    info.records.push({ ...req.body, id: Date.now().toString() });
+    info.stories = info.stories.filter(s => s.id != req.body.storyId);
     await info.save();
     res.redirect('/admin');
 });
 
-// Delete Stat from Leaderboard
+app.post('/admin/delete-record', async (req, res) => {
+    if (!req.session.isAdmin) return res.redirect('/admin-login');
+    const info = await getInfo();
+    info.records = info.records.filter(r => r.id != req.body.recordId);
+    await info.save();
+    res.redirect('/admin');
+});
+
 app.post('/admin/delete-stat', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/admin-login');
     const { type, index } = req.body;
@@ -238,7 +273,6 @@ app.post('/admin/delete-stat', async (req, res) => {
     res.redirect('/admin');
 });
 
-// Delete Team from Standings
 app.post('/admin/delete-team', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/admin-login');
     const { groupId, teamIndex } = req.body;
@@ -250,37 +284,13 @@ app.post('/admin/delete-team', async (req, res) => {
     res.redirect('/admin');
 });
 
-// Delete Match
-app.post('/admin/delete-match', async (req, res) => {
-    if (!req.session.isAdmin) return res.redirect('/admin-login');
-    await Match.findByIdAndDelete(req.body.matchId);
-    res.redirect('/admin');
-});
-
-// Delete Player
-app.post('/admin/delete-player', async (req, res) => {
-    if (!req.session.isAdmin) return res.redirect('/admin-login');
-    await Player.findByIdAndDelete(req.body.playerId);
-    res.redirect('/admin');
-});
-
-// Delete Story (Improved ID check)
-app.post('/admin/delete-story', async (req, res) => {
-    if (!req.session.isAdmin) return res.redirect('/admin-login');
-    const info = await getInfo();
-    info.stories = info.stories.filter(s => s.id != req.body.storyId);
-    await info.save();
-    res.redirect('/admin');
-});
-
-// Delete Group
 app.post('/admin/delete-group', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/admin-login');
     await Group.findByIdAndDelete(req.body.groupId);
     res.redirect('/admin');
 });
 
-// Admin Auth
+// --- ADMIN LOGIN ---
 app.post('/admin-login', (req, res) => {
     if (req.body.password === ADMIN_KEY) {
         req.session.isAdmin = true;
