@@ -19,32 +19,36 @@
         50% { box-shadow: 0 0 20px rgba(88, 101, 242, 0.7); }
         100% { box-shadow: 0 0 5px rgba(88, 101, 242, 0.4); }
     }
+
+    /* Mobile Menu Logic */
+    #mobile-menu { transition: all 0.3s ease-in-out; transform: translateY(-100%); opacity: 0; pointer-events: none; }
+    #mobile-menu.active { transform: translateY(0); opacity: 1; pointer-events: all; }
 </style>
 
 <nav class="fixed top-0 w-full bg-black/80 backdrop-blur-xl border-b border-white/5 h-20">
     <div class="max-w-[1600px] mx-auto px-6 h-full flex items-center justify-between">
         
-        <div class="flex items-center gap-8">
+        <div class="flex items-center gap-4 lg:gap-8">
             <a href="/" class="flex items-center gap-3 shrink-0 group">
-                <span class="text-xl font-black italic tracking-tighter text-white uppercase whitespace-nowrap">
+                <span class="text-lg md:text-xl font-black italic tracking-tighter text-white uppercase whitespace-nowrap">
                     VIM <span class="text-blue-500">SUPER LEAGUE</span>
                 </span>
             </a>
 
-            <div class="flex items-center gap-4 border-l border-white/10 pl-8">
+            <div class="flex items-center gap-4 border-l border-white/10 pl-4 lg:pl-8">
                 <% if (typeof user !== 'undefined' && user) { %>
-                    <a href="/profile" class="flex items-center gap-3 bg-white/5 hover:bg-white/10 px-4 py-2 rounded-2xl border border-white/10 transition group">
+                    <a href="/profile" class="flex items-center gap-3 bg-white/5 hover:bg-white/10 px-3 md:px-4 py-2 rounded-2xl border border-white/10 transition group">
                         <div class="w-7 h-7 bg-blue-600 rounded-full flex items-center justify-center font-black italic text-[10px]">
                             <%= user.name.charAt(0) %>
                         </div>
-                        <div class="text-left hidden lg:block">
+                        <div class="text-left hidden md:block">
                             <p class="text-[10px] font-bold text-white uppercase"><%= user.name %></p>
                         </div>
                     </a>
                     <a href="/logout" class="text-[8px] font-black uppercase text-white/20 hover:text-red-500 transition">Logout</a>
                 <% } else { %>
-                    <a href="/profile" class="bg-white/5 hover:bg-white text-white hover:text-black px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest border border-white/10 transition">
-                        Sign In / Register
+                    <a href="/profile" class="bg-white/5 hover:bg-white text-white hover:text-black px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest border border-white/10 transition whitespace-nowrap">
+                        Sign In
                     </a>
                 <% } %>
             </div>
@@ -74,6 +78,24 @@
                 </a>
             </div>
         </div>
+
+        <button onclick="document.getElementById('mobile-menu').classList.toggle('active')" class="xl:hidden text-white p-2">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+        </button>
+    </div>
+
+    <div id="mobile-menu" class="absolute top-20 left-0 w-full bg-black/95 border-b border-white/10 xl:hidden px-6 py-6 flex flex-col gap-6">
+        <a href="/" class="text-xs font-bold uppercase tracking-widest text-white">Home</a>
+        <a href="/market" class="text-xs font-bold uppercase tracking-widest text-white/50">Market</a>
+        <a href="/matches" class="text-xs font-bold uppercase tracking-widest text-white/50">Matches</a>
+        <a href="/metrics" class="text-xs font-bold uppercase tracking-widest text-white/50">Metrics</a>
+        <a href="/league-records" class="text-xs font-bold uppercase tracking-widest text-white/50">League Records</a>
+        <a href="/admin" class="text-xs font-bold uppercase tracking-widest text-white/50">Admin</a>
+        <div class="pt-4 border-t border-white/5 flex flex-col gap-4">
+            <a href="https://discord.gg/9Jz2d5PkwB" class="bg-[#5865F2] text-white text-center py-3 rounded-xl text-[10px] font-black uppercase tracking-widest">Discord</a>
+            <a href="https://vimsuperleague-rulebook.base44.app/" class="text-white/30 text-center text-[8px] font-black uppercase tracking-[0.2em]">Handbook</a>
+        </div>
     </div>
 </nav>
 <div class="h-20"></div>
+
