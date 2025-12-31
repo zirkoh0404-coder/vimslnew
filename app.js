@@ -247,10 +247,22 @@ app.post('/admin/delete-player', async (req, res) => {
 
 app.post('/admin/delete-story', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/admin-login');
-    const info = await getInfo();
-    info.stories = info.stories.filter(s => s.id != req.body.storyId);
-    await info.save();
-    res.redirect('/admin');
+    try {
+        const { storyIndex } = req.body;
+        const info = await getInfo();
+        
+        // Remove the story at the specific index position
+        if (info.stories && info.stories[storyIndex] !== undefined) {
+            info.stories.splice(storyIndex, 1);
+            info.markModified('stories'); // Tells MongoDB the array changed
+            await info.save();
+        }
+        
+        res.redirect('/admin');
+    } catch (err) {
+        console.error(err);
+        res.redirect('/admin?error=DeleteStoryFailed');
+    }
 });
 
 app.post('/admin/delete-record', async (req, res) => {
