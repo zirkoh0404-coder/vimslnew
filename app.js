@@ -25,7 +25,7 @@ app.use(session({
 const ADMIN_KEY = "VIM-STAFF-2025"; 
 
 // --- MODELS ---
-// FIXED: Added position, country, and timezone to the Schema
+// FIXED: Added position, country, timezone AND theme to the Schema
 const Player = mongoose.model('Player', new mongoose.Schema({
     name: String, 
     discord: String, 
@@ -39,6 +39,7 @@ const Player = mongoose.model('Player', new mongoose.Schema({
     position: { type: String, default: "FWD" },
     country: { type: String, default: "" },
     timezone: { type: String, default: "" },
+    theme: { type: String, default: "blue" }, // <--- NEW THEME FIELD
     experience: String, 
     bio: String, 
     views: [String]
@@ -142,7 +143,6 @@ app.get('/logout', (req, res) => { req.session.destroy(); res.redirect('/'); });
 app.post('/profile/update', async (req, res) => {
     try {
         if (!req.session.playerId) return res.redirect('/market?error=Please login first');
-        // FIXED: Added position, country, and timezone to the update logic
         const { bio, experience, discord, name, position, country, timezone } = req.body;
         await Player.findByIdAndUpdate(req.session.playerId, { 
             bio, experience, discord, name, position, country, timezone 
@@ -151,7 +151,16 @@ app.post('/profile/update', async (req, res) => {
     } catch (err) { res.redirect('/profile?error=Update failed'); }
 });
 
-// FIXED: Added the missing /profile/delete route
+// --- NEW THEME UPDATE ROUTE ---
+app.post('/profile/update-theme', async (req, res) => {
+    try {
+        if (!req.session.playerId) return res.redirect('/market');
+        const { theme } = req.body;
+        await Player.findByIdAndUpdate(req.session.playerId, { theme });
+        res.redirect('/profile');
+    } catch (err) { res.redirect('/profile?error=Theme update failed'); }
+});
+
 app.post('/profile/delete', async (req, res) => {
     try {
         if (!req.session.playerId) return res.redirect('/market');
@@ -223,15 +232,10 @@ app.get('/team/:groupId/:teamIndex', async (req, res) => {
     try {
         const { groupId, teamIndex } = req.params;
         const group = await Group.findById(groupId);
-        
-        // Safety check: make sure the group and the specific team exist
         if (!group || !group.teams[teamIndex]) {
             return res.redirect('/metrics?error=Team not found');
         }
-
         const team = group.teams[teamIndex];
-
-        // This renders your new template and passes the 'team' and 'group' data to it
         res.render('team-details', { 
             team, 
             group, 
@@ -260,16 +264,11 @@ app.post('/admin/delete-from-roster', async (req, res) => {
     try {
         const { groupId, teamIndex, playerIndex } = req.body;
         const group = await Group.findById(groupId);
-        
         if (group && group.teams[teamIndex] && group.teams[teamIndex].roster) {
-            // Remove the player at that specific position in the roster array
             group.teams[teamIndex].roster.splice(playerIndex, 1);
-            
-            // Critical: Tell MongoDB that the roster array has changed
             group.markModified(`teams.${teamIndex}.roster`);
             await group.save();
         }
-        
         res.redirect('/admin');
     } catch (err) {
         console.error("Roster Delete Error:", err);
@@ -321,14 +320,11 @@ app.post('/admin/delete-story', async (req, res) => {
     try {
         const { storyIndex } = req.body;
         const info = await getInfo();
-        
-        // Remove the story at the specific index position
         if (info.stories && info.stories[storyIndex] !== undefined) {
             info.stories.splice(storyIndex, 1);
-            info.markModified('stories'); // Tells MongoDB the array changed
+            info.markModified('stories');
             await info.save();
         }
-        
         res.redirect('/admin');
     } catch (err) {
         console.error(err);
