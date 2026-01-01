@@ -47,8 +47,13 @@
                     <% } %>
                     
                     <div class="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black via-black/80 to-transparent">
-                        <p class="text-2xl font-black italic text-white uppercase leading-none"><%= user ? user.name : 'Unknown' %></p>
-                        <p class="text-blue-500 font-bold text-[10px] uppercase tracking-widest mt-1">@<%= user ? user.discord : 'none' %></p>
+                        <div class="flex justify-between items-end">
+                            <div>
+                                <p class="text-2xl font-black italic text-white uppercase leading-none"><%= user ? user.name : 'Unknown' %></p>
+                                <p class="text-blue-500 font-bold text-[10px] uppercase tracking-widest mt-1">@<%= user ? user.discord : 'none' %></p>
+                            </div>
+                            <span class="bg-blue-600 text-white text-[8px] font-black px-2 py-1 rounded-md italic uppercase"><%= user ? user.position : '???' %></span>
+                        </div>
                     </div>
                 </div>
 
@@ -103,6 +108,30 @@
                         </div>
                     </div>
 
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black uppercase tracking-[0.2em] opacity-40 ml-1 text-white">Position</label>
+                            <select name="position" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-blue-500/50 focus:bg-white/[0.08] transition-all font-bold">
+                                <option value="FWD" <%= user && user.position === 'FWD' ? 'selected' : '' %>>FORWARD</option>
+                                <option value="MID" <%= user && user.position === 'MID' ? 'selected' : '' %>>MIDFIELD</option>
+                                <option value="DEF" <%= user && user.position === 'DEF' ? 'selected' : '' %>>DEFENSE</option>
+                                <option value="GK" <%= user && user.position === 'GK' ? 'selected' : '' %>>GOALKEEPER</option>
+                            </select>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black uppercase tracking-[0.2em] opacity-40 ml-1 text-white">Country</label>
+                            <input name="country" value="<%= user ? user.country : '' %>" 
+                                class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-blue-500/50 focus:bg-white/[0.08] transition-all font-bold" placeholder="e.g. USA">
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black uppercase tracking-[0.2em] opacity-40 ml-1 text-white">Timezone</label>
+                            <input name="timezone" value="<%= user ? user.timezone : '' %>" 
+                                class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-white outline-none focus:border-blue-500/50 focus:bg-white/[0.08] transition-all font-bold" placeholder="e.g. GMT+5">
+                        </div>
+                    </div>
+
                     <div class="space-y-2">
                         <label class="text-[10px] font-black uppercase tracking-[0.2em] opacity-40 ml-1 text-white">Market Biography</label>
                         <div class="relative">
@@ -131,5 +160,10 @@
         background: rgba(255, 255, 255, 0.03);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
+    }
+    /* Style for dropdown options background */
+    select option {
+        background: #0a0a0a;
+        color: white;
     }
 </style>
