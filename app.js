@@ -25,12 +25,23 @@ app.use(session({
 const ADMIN_KEY = "VIM-STAFF-2025"; 
 
 // --- MODELS ---
+// FIXED: Added position, country, and timezone to the Schema
 const Player = mongoose.model('Player', new mongoose.Schema({
-    name: String, discord: String, password: { type: String, required: true },
-    cardImage: { type: String, default: "" }, verified: { type: Boolean, default: false },
-    goals: { type: Number, default: 0 }, assists: { type: Number, default: 0 },
-    saves: { type: Number, default: 0 }, mvps: { type: Number, default: 0 },
-    experience: String, bio: String, views: [String]
+    name: String, 
+    discord: String, 
+    password: { type: String, required: true },
+    cardImage: { type: String, default: "" }, 
+    verified: { type: Boolean, default: false },
+    goals: { type: Number, default: 0 }, 
+    assists: { type: Number, default: 0 }, 
+    saves: { type: Number, default: 0 }, 
+    mvps: { type: Number, default: 0 }, 
+    position: { type: String, default: "FWD" },
+    country: { type: String, default: "" },
+    timezone: { type: String, default: "" },
+    experience: String, 
+    bio: String, 
+    views: [String]
 }));
 
 const Match = mongoose.model('Match', new mongoose.Schema({
@@ -131,10 +142,23 @@ app.get('/logout', (req, res) => { req.session.destroy(); res.redirect('/'); });
 app.post('/profile/update', async (req, res) => {
     try {
         if (!req.session.playerId) return res.redirect('/market?error=Please login first');
-        const { bio, experience, discord } = req.body;
-        await Player.findByIdAndUpdate(req.session.playerId, { bio, experience, discord });
+        // FIXED: Added position, country, and timezone to the update logic
+        const { bio, experience, discord, name, position, country, timezone } = req.body;
+        await Player.findByIdAndUpdate(req.session.playerId, { 
+            bio, experience, discord, name, position, country, timezone 
+        });
         res.redirect('/profile');
     } catch (err) { res.redirect('/profile?error=Update failed'); }
+});
+
+// FIXED: Added the missing /profile/delete route
+app.post('/profile/delete', async (req, res) => {
+    try {
+        if (!req.session.playerId) return res.redirect('/market');
+        await Player.findByIdAndDelete(req.session.playerId);
+        req.session.destroy();
+        res.redirect('/market?error=Account deleted successfully');
+    } catch (err) { res.redirect('/profile?error=Delete failed'); }
 });
 
 // --- ADMIN / DATA UPDATES ---
