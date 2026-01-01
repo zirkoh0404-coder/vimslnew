@@ -124,7 +124,7 @@
                         <div class="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent p-6 flex flex-col justify-end">
                             <div class="flex justify-between items-start">
                                 <h3 class="font-black text-2xl italic uppercase tracking-tighter text-white"><%= p.name %></h3>
-                                <span class="bg-blue-600 text-white text-[8px] font-black px-2 py-1 rounded-md italic"><%= p.position %></span>
+                                <span class="bg-blue-600 text-white text-[8px] font-black px-2 py-1 rounded-md italic uppercase"><%= p.position || 'N/A' %></span>
                             </div>
                             <div class="flex justify-between items-center mt-1">
                                 <p class="text-[9px] text-blue-400 font-bold uppercase tracking-widest">View Profile</p>
@@ -147,7 +147,7 @@
                     <img id="modalImg" src="" class="w-full h-full object-cover">
                     <div class="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black to-transparent">
                         <div class="flex items-center gap-3">
-                            <span id="modalPosBadge" class="bg-blue-600 text-white text-[10px] font-black px-3 py-1 rounded-full italic"></span>
+                            <span id="modalPosBadge" class="bg-blue-600 text-white text-[10px] font-black px-3 py-1 rounded-full italic uppercase"></span>
                             <span id="modalCountryBadge" class="text-white/60 text-[10px] font-bold uppercase tracking-widest"></span>
                         </div>
                         <h2 id="modalName" class="text-4xl font-black italic uppercase text-white tracking-tighter mt-1"></h2>
@@ -275,6 +275,8 @@
         document.getElementById('modalImg').src = img;
         document.getElementById('modalBio').innerText = bio;
         document.getElementById('modalDiscord').innerText = "@" + discord;
+        
+        // UPDATED: Mapping the specific position, country, and timezone
         document.getElementById('modalPosBadge').innerText = pos || 'PLAYER';
         document.getElementById('modalCountryBadge').innerText = country || 'UNKNOWN';
         document.getElementById('modalTZ').innerText = "TIMEZONE: " + (tz || 'N/A');
