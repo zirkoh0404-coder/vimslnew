@@ -270,14 +270,7 @@
     async function openBio(el, name, img, bio, discord, g, a, s, m, currentViews, pos, country, tz) {
         el.classList.add('card-active-anim');
         
-        try {
-            const response = await fetch(`/market/view/${name}`, { method: 'POST' });
-            const data = await response.json();
-            document.getElementById('modalViews').innerText = data.success ? data.count : currentViews;
-        } catch(e) {
-            document.getElementById('modalViews').innerText = currentViews;
-        }
-
+        // Populate static modal info first
         document.getElementById('modalName').innerText = name;
         document.getElementById('modalImg').src = img;
         document.getElementById('modalBio').innerText = bio;
@@ -290,7 +283,20 @@
         document.getElementById('mAssists').innerText = a;
         document.getElementById('mSaves').innerText = s;
         document.getElementById('mMvps').innerText = m;
+        document.getElementById('modalViews').innerText = currentViews;
+
+        // Async view count update
+        try {
+            const response = await fetch(`/market/view/${name}`, { method: 'POST' });
+            const data = await response.json();
+            if(data.success) {
+                document.getElementById('modalViews').innerText = data.count;
+            }
+        } catch(e) {
+            console.error("View count update failed", e);
+        }
         
+        // Trigger modal display with preserved timings
         setTimeout(() => {
             const modal = document.getElementById('bioModal');
             const container = document.getElementById('modalContainer');
