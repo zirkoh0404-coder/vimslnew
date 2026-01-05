@@ -5,13 +5,11 @@
     .animate-conveyor { display: flex; animation: scroll 30s linear infinite; width: max-content; }
     .animate-conveyor:hover { animation-play-state: paused; }
     
-    /* LEVITATION EFFECT */
     @keyframes levitate {
         0%, 100% { transform: translateY(0); }
         50% { transform: translateY(-15px); }
     }
 
-    /* 3D TILT & GLOW EFFECT */
     .player-card { 
         transition: transform 0.1s ease-out, box-shadow 0.3s ease, border-color 0.3s ease;
         cursor: pointer; 
@@ -29,7 +27,6 @@
         animation-play-state: paused;
     }
 
-    /* Grayscale Logic */
     .card-img {
         filter: grayscale(100%);
         transition: filter 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s ease;
@@ -39,7 +36,6 @@
         transform: scale(1.05);
     }
 
-    /* SLEEK CLICK ANIMATION */
     .card-active-anim {
         animation: sleekClick 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
         pointer-events: none;
@@ -51,7 +47,6 @@
         100% { transform: scale(1.02); opacity: 0.8; }
     }
 
-    /* FIFA STYLE MODAL */
     .modal { 
         display: none; 
         position: fixed; 
@@ -89,7 +84,6 @@
     .form-input:focus { border-color: #3b82f6; background: rgba(59, 130, 246, 0.05); }
     select.form-input option { background: #0a0a0a; color: white; }
 
-    /* TOGGLE CLASSES */
     .hidden-form { display: none !important; }
 </style>
 
@@ -115,23 +109,21 @@
             <div class="animate-conveyor gap-10 px-4">
                 <% let displayList = players.length < 5 ? [...players, ...players, ...players, ...players] : [...players, ...players]; %>
                 <% displayList.forEach(p => { 
-                    /* DYNAMIC IMAGE LOGIC */
-                    /* DYNAMIC IMAGE LOGIC */
-let finalImage;
-if (p.cardImage && p.cardImage.trim() !== '' && p.cardImage !== 'none' && p.cardImage !== 'undefined') {
-    finalImage = p.cardImage;
-} else {
-    // Falls back to Roblox Headshot if no custom GFX is provided
-    finalImage = `https://www.roblox.com/headshot-thumbnail/image?userName=${encodeURIComponent(p.name)}&width=420&height=420&format=png`;
-}
+                    // ROBUST IMAGE FALLBACK LOGIC
+                    let finalImage;
+                    if (p.cardImage && p.cardImage.trim() !== '' && p.cardImage !== 'none' && p.cardImage !== 'undefined') {
+                        finalImage = p.cardImage;
+                    } else {
+                        finalImage = `https://www.roblox.com/headshot-thumbnail/image?userName=${encodeURIComponent(p.name)}&width=420&height=420&format=png`;
+                    }
                 %>
                     <div class="player-card w-[260px] h-[360px] glass rounded-[30px] overflow-hidden flex-shrink-0 relative group"
                          onmousemove="tiltCard(event, this)" 
                          onmouseleave="resetTilt(this)"
-                         onclick="openBio(this, '<%= p.name %>', '<%= finalImage %>', `<%= p.experience || p.bio %>`, '<%= p.discord %>', '<%= p.goals || 0 %>', '<%= p.assists || 0 %>', '<%= p.saves || 0 %>', '<%= p.mvps || 0 %>', '<%= p.views ? p.views.length : 0 %>', '<%= p.position %>', '<%= p.country %>', '<%= p.timezone %>')">
+                         onclick="openBio(this, '<%= p.name %>', '<%= finalImage %>', `<%= (p.experience || p.bio || 'No bio').replace(/`/g, '\\`') %>`, '<%= p.discord %>', '<%= p.goals || 0 %>', '<%= p.assists || 0 %>', '<%= p.saves || 0 %>', '<%= p.mvps || 0 %>', '<%= p.views ? p.views.length : 0 %>', '<%= p.position %>', '<%= p.country %>', '<%= p.timezone %>')">
                         
-                        <div class="w-full h-full <%= (p.cardImage && p.cardImage !== 'none') ? '' : 'bg-gradient-to-b from-blue-900/40 to-black' %>">
-                            <img src="<%= finalImage %>" class="card-img w-full h-full object-cover">
+                        <div class="w-full h-full bg-gradient-to-b from-blue-900/40 to-black">
+                            <img src="<%= finalImage %>" class="card-img w-full h-full object-cover" onerror="this.src='https://www.roblox.com/headshot-thumbnail/image?userName=Roblox&width=420&height=420&format=png'">
                         </div>
 
                         <div class="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent p-6 flex flex-col justify-end">
@@ -254,7 +246,6 @@ if (p.cardImage && p.cardImage.trim() !== '' && p.cardImage !== 'none' && p.card
 </main>
 
 <script>
-    // FORM TOGGLE LOGIC
     function toggleAuth() {
         const reg = document.getElementById('registerBox');
         const log = document.getElementById('loginBox');
@@ -262,7 +253,6 @@ if (p.cardImage && p.cardImage.trim() !== '' && p.cardImage !== 'none' && p.card
         log.classList.toggle('hidden-form');
     }
 
-    // PRESERVED ANIMATIONS AND LOGIC
     function tiltCard(e, el) {
         const rect = el.getBoundingClientRect();
         const x = e.clientX - rect.left;
@@ -277,31 +267,21 @@ if (p.cardImage && p.cardImage.trim() !== '' && p.cardImage !== 'none' && p.card
     function resetTilt(el) {
         el.style.transform = `rotateY(0deg) rotateX(0deg) scale(1)`;
     }
-async function openBio(el, name, img, bio, discord, g, a, s, m, currentViews, pos, country, tz) {
+
+    async function openBio(el, name, img, bio, discord, g, a, s, m, currentViews, pos, country, tz) {
         el.classList.add('card-active-anim');
         
-        // 1. Set text information
         document.getElementById('modalName').innerText = name;
         document.getElementById('modalBio').innerText = bio;
         document.getElementById('modalDiscord').innerText = "@" + discord;
         
-        // 2. Setup Image with Fallback Logic
         const modalImg = document.getElementById('modalImg');
-        
-        // If the img passed is empty or "none", set it to the Roblox headshot immediately
-        if (!img || img === 'none' || img === '' || img.includes('undefined')) {
-            modalImg.src = `https://www.roblox.com/headshot-thumbnail/image?userName=${encodeURIComponent(name)}&width=420&height=420&format=png`;
-        } else {
-            modalImg.src = img;
-        }
-
-        // If the image fails to load (e.g. 404), try the Roblox headshot as a last resort
+        modalImg.src = img;
         modalImg.onerror = function() {
             this.src = `https://www.roblox.com/headshot-thumbnail/image?userName=${encodeURIComponent(name)}&width=420&height=420&format=png`;
-            this.onerror = null; // Prevent infinite loops if Roblox is down
+            this.onerror = null;
         };
         
-        // 3. Set the rest of the metadata
         document.getElementById('modalPosBadge').innerText = pos || 'PLAYER';
         document.getElementById('modalCountryBadge').innerText = country || 'UNKNOWN';
         document.getElementById('modalTZ').innerText = "TIMEZONE: " + (tz || 'N/A');
@@ -312,42 +292,8 @@ async function openBio(el, name, img, bio, discord, g, a, s, m, currentViews, po
         document.getElementById('mMvps').innerText = m;
         document.getElementById('modalViews').innerText = currentViews;
 
-        // 4. View Counter Fetch
         try {
             const response = await fetch(`/market/view/${encodeURIComponent(name)}`, { method: 'POST' });
-            const data = await response.json();
-            if(data.success) {
-                document.getElementById('modalViews').innerText = data.count;
-            }
-        } catch(e) {
-            console.error("View count update failed", e);
-        }
-        
-        // 5. Show Modal Animation
-        setTimeout(() => {
-            const modal = document.getElementById('bioModal');
-            const container = document.getElementById('modalContainer');
-            modal.style.display = 'flex';
-            setTimeout(() => {
-                modal.classList.add('active');
-                container.classList.add('show');
-                el.classList.remove('card-active-anim');
-            }, 50);
-        }, 400);
-    }
-        
-        document.getElementById('modalPosBadge').innerText = pos || 'PLAYER';
-        document.getElementById('modalCountryBadge').innerText = country || 'UNKNOWN';
-        document.getElementById('modalTZ').innerText = "TIMEZONE: " + (tz || 'N/A');
-        
-        document.getElementById('mGoals').innerText = g;
-        document.getElementById('mAssists').innerText = a;
-        document.getElementById('mSaves').innerText = s;
-        document.getElementById('mMvps').innerText = m;
-        document.getElementById('modalViews').innerText = currentViews;
-
-        try {
-            const response = await fetch(`/market/view/${name}`, { method: 'POST' });
             const data = await response.json();
             if(data.success) {
                 document.getElementById('modalViews').innerText = data.count;
@@ -376,5 +322,3 @@ async function openBio(el, name, img, bio, discord, g, a, s, m, currentViews, po
         setTimeout(() => { modal.style.display = 'none'; }, 400);
     }
 </script>
-
-
