@@ -29,17 +29,7 @@
         animation-play-state: paused;
     }
 
-    /* CUSTOM IMAGE CARD (Full cover) */
-    .custom-card-img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        position: absolute;
-        inset: 0;
-        z-index: 1;
-    }
-
-    /* CIRCLE HEADSHOT FALLBACK STYLING */
+    /* FALLBACK DESIGN STYLING */
     .headshot-container {
         position: relative;
         width: 110px;
@@ -61,7 +51,6 @@
 
     .player-card:hover .headshot-circle {
         transform: scale(1.1);
-        border-color: #60a5fa;
     }
 
     .card-active-anim {
@@ -107,7 +96,7 @@
     }
 
     .form-input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 1.2rem; border-radius: 1.2rem; outline: none; transition: 0.3s; color: white; font-style: italic; }
-    .form-input:focus { border-color: #3b82f6; background: rgba(59, 130, 246, 0.05); box-shadow: 0 0 20px rgba(59,130,246,0.1); }
+    .form-input:focus { border-color: #3b82f6; background: rgba(59, 130, 246, 0.05); }
     
     .hidden-form { display: none !important; }
 
@@ -115,7 +104,6 @@
         background: #3b82f6;
         text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
-        z-index: 5;
     }
 </style>
 
@@ -146,53 +134,36 @@
                 <% displayList.forEach(p => { 
                     let cleanName = (p.name || 'Unknown').trim();
                     let rating = p.rating || 60;
+                    // Updated Roblox Headshot Fetch Logic
                     let robloxHeadshot = `https://www.roblox.com/headshot-thumbnail/image?userName=${encodeURIComponent(cleanName)}&width=150&height=150&format=png`;
+                    
+                    let hasCustomImage = (p.cardImage && p.cardImage !== 'none' && p.cardImage !== '');
                 %>
                     <div class="player-card w-[260px] h-[360px] rounded-[35px] flex-shrink-0 relative group flex flex-col items-center"
                          onmousemove="tiltCard(event, this)" 
                          onmouseleave="resetTilt(this)"
-                         onclick="openBio(this, '<%= cleanName %>', '<%= p.imageUrl || robloxHeadshot %>', `<%= (p.experience || p.bio || 'No bio provided.').replace(/`/g, '\\`') %>`, '<%= p.discord %>', '<%= p.goals || 0 %>', '<%= p.assists || 0 %>', '<%= p.saves || 0 %>', '<%= p.mvps || 0 %>', '<%= p.views ? p.views.length : 0 %>', '<%= p.position %>', '<%= p.country %>', '<%= p.timezone %>', '<%= rating %>')">
+                         onclick="openBio(this, '<%= cleanName %>', '<%= hasCustomImage ? p.cardImage : robloxHeadshot %>', `<%= (p.experience || p.bio || 'No bio').replace(/`/g, '\\`') %>`, '<%= p.discord %>', '<%= p.goals || 0 %>', '<%= p.assists || 0 %>', '<%= p.saves || 0 %>', '<%= p.mvps || 0 %>', '<%= p.views ? p.views.length : 0 %>', '<%= p.position %>', '<%= p.country %>', '<%= p.timezone %>', '<%= rating %>')">
                         
-                        <% if (p.imageUrl) { %>
-                            <img src="<%= p.imageUrl %>" class="custom-card-img" alt="Custom Card">
+                        <% if (hasCustomImage) { %>
+                            <img src="<%= p.cardImage %>" class="w-full h-full object-cover rounded-[35px]" onerror="this.src='<%= robloxHeadshot %>'">
                         <% } else { %>
                             <div class="absolute top-6 left-6 z-10">
                                 <div class="rating-badge w-11 h-11 rounded-full flex items-center justify-center border border-white/20">
                                     <span class="text-white font-black text-xl italic"><%= rating %></span>
                                 </div>
                             </div>
-
-                            <div class="absolute top-20 left-7 opacity-20 group-hover:opacity-100 transition-opacity">
-                                <p class="text-[10px] font-black text-blue-500 uppercase tracking-widest" style="writing-mode: vertical-rl;"><%= p.position || 'MID' %></p>
-                            </div>
-
                             <div class="headshot-container">
-                                <img src="<%= robloxHeadshot %>" 
-                                     class="headshot-circle object-cover" 
-                                     loading="lazy"
-                                     onerror="this.src='https://www.roblox.com/headshot-thumbnail/image?userName=Roblox&width=150&height=150&format=png'">
+                                <img src="<%= robloxHeadshot %>" class="headshot-circle object-cover" loading="lazy">
                             </div>
-
                             <div class="text-center mt-6 px-4">
                                 <span class="text-[9px] font-black text-blue-500/60 uppercase tracking-[0.3em] mb-1 block"><%= p.country || 'GLOBAL' %></span>
-                                <h3 class="font-black text-2xl italic uppercase tracking-tighter text-white leading-tight group-hover:text-blue-400 transition-colors"><%= cleanName %></h3>
+                                <h3 class="font-black text-2xl italic uppercase tracking-tighter text-white leading-tight"><%= cleanName %></h3>
                             </div>
-
-                            <div class="mt-auto mb-8 flex gap-4 opacity-40 group-hover:opacity-100 transition-all transform group-hover:translate-y-[-5px]">
-                                 <div class="text-center">
-                                    <p class="text-[8px] font-black text-white/50 uppercase">G</p>
-                                    <p class="text-xs font-bold text-white"><%= p.goals || 0 %></p>
-                                 </div>
-                                 <div class="text-center">
-                                    <p class="text-[8px] font-black text-white/50 uppercase">A</p>
-                                    <p class="text-xs font-bold text-white"><%= p.assists || 0 %></p>
-                                 </div>
-                                 <div class="text-center">
-                                    <p class="text-[8px] font-black text-white/50 uppercase">MVP</p>
-                                    <p class="text-xs font-bold text-blue-500"><%= p.mvps || 0 %></p>
-                                 </div>
+                            <div class="mt-auto mb-8 flex gap-4 opacity-40 group-hover:opacity-100 transition-all">
+                                <div class="text-center"><p class="text-[8px] font-black text-white/50 uppercase">G</p><p class="text-xs font-bold text-white"><%= p.goals || 0 %></p></div>
+                                <div class="text-center"><p class="text-[8px] font-black text-white/50 uppercase">A</p><p class="text-xs font-bold text-white"><%= p.assists || 0 %></p></div>
+                                <div class="text-center"><p class="text-[8px] font-black text-white/50 uppercase">MVP</p><p class="text-xs font-bold text-blue-500"><%= p.mvps || 0 %></p></div>
                             </div>
-                            <div class="absolute bottom-4 text-[7px] text-white/20 font-black uppercase tracking-[0.5em] z-10">CLICK TO VIEW BIO</div>
                         <% } %>
                     </div>
                 <% }) %>
@@ -242,56 +213,32 @@
     <div class="max-w-5xl mx-auto px-6 mt-20">
         <% if (user) { %>
             <div class="max-w-xl mx-auto bg-gradient-to-br from-white/10 to-transparent p-12 rounded-[50px] border border-white/10 text-center">
-                <div class="w-20 h-20 bg-blue-600 rounded-full mx-auto mb-6 flex items-center justify-center shadow-lg shadow-blue-600/20">
-                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                </div>
                 <h3 class="text-2xl font-black italic uppercase text-white mb-2">Authenticated: <span class="text-blue-500"><%= user.name %></span></h3>
-                <p class="text-[10px] text-white/40 uppercase tracking-widest mb-8">You are currently listed on the global market</p>
-                <div class="space-y-4">
-                    <a href="/profile" class="block w-full bg-blue-600 text-white py-5 rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-blue-500 transition-all shadow-xl shadow-blue-600/20">Access Player Dashboard</a>
-                    <form action="/profile/delete" method="POST" onsubmit="return confirm('Withdraw your contract from the market?')">
-                        <button type="submit" class="w-full text-red-500/50 hover:text-red-500 text-[10px] font-black uppercase tracking-[0.3em] transition-colors">Terminate Market Listing</button>
-                    </form>
-                </div>
+                <a href="/profile" class="block w-full bg-blue-600 text-white py-5 rounded-2xl font-black text-[11px] uppercase tracking-widest mt-6">Access Player Dashboard</a>
             </div>
         <% } else { %>
             <div class="grid md:grid-cols-1 max-w-2xl mx-auto gap-10">
-                <div id="registerBox" class="bg-white/5 p-12 rounded-[50px] border border-white/10 backdrop-blur-sm">
-                    <h3 class="text-3xl font-black italic mb-8 uppercase text-white tracking-tighter">JOIN THE <span class="text-blue-600">MARKET</span></h3>
+                <div id="registerBox" class="bg-white/5 p-12 rounded-[50px] border border-white/10">
+                    <h3 class="text-3xl font-black italic mb-8 uppercase text-white">Join the Market</h3>
                     <form action="/register" method="POST" class="space-y-5">
                         <div class="grid grid-cols-2 gap-5">
                             <input name="name" placeholder="ROBLOX USERNAME" required class="form-input">
                             <input name="discord" placeholder="DISCORD USERNAME" required class="form-input">
                         </div>
-                        <div class="grid grid-cols-3 gap-5">
-                            <select name="position" required class="form-input">
-                                <option value="" disabled selected>POSITION</option>
-                                <option value="FWD">FORWARD</option>
-                                <option value="MID">MIDFIELD</option>
-                                <option value="DEF">DEFENSE</option>
-                                <option value="GK">GOALKEEPER</option>
-                            </select>
-                            <input name="country" placeholder="COUNTRY" required class="form-input">
-                            <input name="timezone" placeholder="TIMEZONE" required class="form-input">
-                        </div>
-                        <textarea name="experience" placeholder="PLAYER BIOGRAPHY / ACHIEVEMENTS..." required class="form-input h-32"></textarea>
+                        <textarea name="experience" placeholder="PLAYER BIOGRAPHY..." required class="form-input h-32"></textarea>
                         <input type="password" name="password" placeholder="SECURE PASSWORD" required class="form-input">
-                        <button type="submit" class="w-full bg-white text-black py-5 rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all transform hover:scale-[1.02]">SUBMIT CONTRACT</button>
+                        <button type="submit" class="w-full bg-white text-black py-5 rounded-2xl font-black text-[11px] uppercase">Submit Contract</button>
                     </form>
-                    <div class="mt-8 text-center">
-                        <button onclick="toggleAuth()" class="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 hover:text-blue-500 transition underline underline-offset-8">Switch to Portal Login</button>
-                    </div>
+                    <button onclick="toggleAuth()" class="mt-6 text-[10px] font-black uppercase text-white/30">Switch to Login</button>
                 </div>
                 <div id="loginBox" class="bg-white/5 p-12 rounded-[50px] border border-white/10 hidden-form">
-                    <h3 class="text-3xl font-black italic mb-8 uppercase text-blue-500 tracking-tighter">PLAYER PORTAL</h3>
+                    <h3 class="text-3xl font-black italic mb-8 uppercase text-blue-500">Player Portal</h3>
                     <form action="/login" method="POST" class="space-y-6">
                         <input name="username" placeholder="ROBLOX USERNAME" required class="form-input">
                         <input type="password" name="password" placeholder="ACCOUNT PASSWORD" required class="form-input">
-                        <button type="submit" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-blue-500 transition-all shadow-xl shadow-blue-600/20">AUTHORIZE ACCESS</button>
+                        <button type="submit" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black text-[11px] uppercase">Authorize Access</button>
                     </form>
-                    <div class="mt-8 text-center">
-                        <button onclick="toggleAuth()" class="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 hover:text-blue-500 transition underline underline-offset-8">Need a Market Listing? Register</button>
-                    </div>
+                    <button onclick="toggleAuth()" class="mt-6 text-[10px] font-black uppercase text-white/30">Need a Listing? Register</button>
                 </div>
             </div>
         <% } %>
@@ -335,11 +282,13 @@
         document.getElementById('mSaves').innerText = s;
         document.getElementById('mMvps').innerText = m;
         document.getElementById('modalViews').innerText = currentViews;
+        
         try {
             const res = await fetch(`/market/view/${encodeURIComponent(name)}`, { method: 'POST' });
             const data = await res.json();
             if(data.success) document.getElementById('modalViews').innerText = data.count;
         } catch(e) {}
+        
         setTimeout(() => {
             const modal = document.getElementById('bioModal');
             const container = document.getElementById('modalContainer');
