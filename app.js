@@ -25,7 +25,6 @@ app.use(session({
 const ADMIN_KEY = "VIM-STAFF-2025"; 
 
 // --- MODELS ---
-// FIXED: Added position, country, timezone AND theme to the Schema
 const Player = mongoose.model('Player', new mongoose.Schema({
     name: String, 
     discord: String, 
@@ -39,7 +38,7 @@ const Player = mongoose.model('Player', new mongoose.Schema({
     position: { type: String, default: "FWD" },
     country: { type: String, default: "" },
     timezone: { type: String, default: "" },
-    theme: { type: String, default: "blue" }, // <--- NEW THEME FIELD
+    theme: { type: String, default: "blue" },
     experience: String, 
     bio: String, 
     views: [String]
@@ -100,10 +99,31 @@ app.use(async (req, res, next) => {
 
 // --- PAGES ---
 app.get('/', async (req, res) => res.render('index', { page: 'home' }));
+
 app.get('/market', async (req, res) => {
+    // Only fetch verified players for the market
     const players = await Player.find({ verified: true });
     res.render('market', { page: 'market', players, error: req.query.error || null });
 });
+
+// NEW: VIEW COUNTER ROUTE (PREVENTS 0 VIEWS ISSUE)
+app.post('/market/view/:name', async (req, res) => {
+    try {
+        const player = await Player.findOneAndUpdate(
+            { name: req.params.name },
+            { $addToSet: { views: req.ip } }, // Prevents duplicate views from same IP
+            { new: true }
+        );
+        if (player) {
+            res.json({ success: true, count: player.views.length });
+        } else {
+            res.json({ success: false });
+        }
+    } catch (e) {
+        res.json({ success: false });
+    }
+});
+
 app.get('/matches', (req, res) => res.render('matches', { page: 'matches' }));
 app.get('/match/:id', async (req, res) => {
     const match = await Match.findById(req.params.id);
@@ -151,7 +171,6 @@ app.post('/profile/update', async (req, res) => {
     } catch (err) { res.redirect('/profile?error=Update failed'); }
 });
 
-// --- NEW THEME UPDATE ROUTE ---
 app.post('/profile/update-theme', async (req, res) => {
     try {
         if (!req.session.playerId) return res.redirect('/market');
@@ -197,7 +216,11 @@ app.post('/admin/update-match-details', async (req, res) => {
 });
 
 app.post('/admin/approve-player', async (req, res) => {
-    await Player.findByIdAndUpdate(req.body.playerId, { verified: true, cardImage: req.body.cardImage });
+    // Ensure cardImage is saved as an empty string if not provided, allowing headshot fallback
+    await Player.findByIdAndUpdate(req.body.playerId, { 
+        verified: true, 
+        cardImage: req.body.cardImage || "" 
+    });
     res.redirect('/admin');
 });
 
@@ -206,7 +229,7 @@ app.post('/admin/update-market-player', async (req, res) => {
     await Player.findOneAndUpdate({ name: username }, {
         goals: parseInt(goals) || 0, assists: parseInt(assists) || 0,
         saves: parseInt(saves) || 0, mvps: parseInt(mvps) || 0,
-        bio, cardImage
+        bio, cardImage: cardImage || ""
     });
     res.redirect('/admin');
 });
@@ -227,7 +250,6 @@ app.post('/admin/update-team', async (req, res) => {
     res.redirect('/admin');
 });
 
-// --- TEAM DETAILS PAGE ---
 app.get('/team/:groupId/:teamIndex', async (req, res) => {
     try {
         const { groupId, teamIndex } = req.params;
@@ -302,7 +324,6 @@ app.post('/admin/update-stat', async (req, res) => {
     res.redirect('/admin');
 });
 
-// --- DELETE ROUTES ---
 app.post('/admin/delete-match', async (req, res) => {
     if (!req.session.isAdmin) return res.redirect('/admin-login');
     await Match.findByIdAndDelete(req.body.matchId);
@@ -369,7 +390,6 @@ app.post('/admin/delete-group', async (req, res) => {
     res.redirect('/admin');
 });
 
-// --- ADMIN LOGIN ---
 app.post('/admin-login', (req, res) => {
     if (req.body.password === ADMIN_KEY) {
         req.session.isAdmin = true;
