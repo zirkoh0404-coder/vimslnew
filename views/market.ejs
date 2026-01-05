@@ -116,9 +116,14 @@
                 <% let displayList = players.length < 5 ? [...players, ...players, ...players, ...players] : [...players, ...players]; %>
                 <% displayList.forEach(p => { 
                     /* DYNAMIC IMAGE LOGIC */
-                    let finalImage = (p.cardImage && p.cardImage !== 'none' && p.cardImage !== '') 
-                        ? p.cardImage 
-                        : `https://www.roblox.com/headshot-thumbnail/image?userName=${p.name}&width=420&height=420&format=png`;
+                    /* DYNAMIC IMAGE LOGIC */
+let finalImage;
+if (p.cardImage && p.cardImage.trim() !== '' && p.cardImage !== 'none' && p.cardImage !== 'undefined') {
+    finalImage = p.cardImage;
+} else {
+    // Falls back to Roblox Headshot if no custom GFX is provided
+    finalImage = `https://www.roblox.com/headshot-thumbnail/image?userName=${encodeURIComponent(p.name)}&width=420&height=420&format=png`;
+}
                 %>
                     <div class="player-card w-[260px] h-[360px] glass rounded-[30px] overflow-hidden flex-shrink-0 relative group"
                          onmousemove="tiltCard(event, this)" 
@@ -321,3 +326,4 @@
         setTimeout(() => { modal.style.display = 'none'; }, 400);
     }
 </script>
+
