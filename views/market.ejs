@@ -29,7 +29,7 @@
         animation-play-state: paused;
     }
 
-    /* Grayscale Logic - Updated to include fallback-container */
+    /* Grayscale Logic */
     .card-img, .fallback-container {
         filter: grayscale(100%);
         transition: filter 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s ease;
@@ -101,16 +101,17 @@
         justify-content: center;
         height: 100%;
         background: linear-gradient(to bottom, #1e3a8a, #000);
-        padding-top: 0rem; /* Adjusted for better centering */
+        position: relative;
     }
     .fallback-headshot {
-        width: 130px; /* Slightly larger */
+        width: 130px;
         height: 130px;
         border-radius: 50%;
         border: 4px solid #3b82f6;
-        object-fit: cover; /* Fixed property name */
+        object-fit: cover;
         box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
         background: #000;
+        z-index: 2;
     }
 
     /* RATING BADGE STYLE */
@@ -119,7 +120,7 @@
         top: 25px;
         left: 25px;
         text-align: center;
-        z-index: 5;
+        z-index: 10;
     }
     .rating-value { font-size: 32px; font-weight: 900; color: white; line-height: 1; font-style: italic; }
     .rating-label { font-size: 10px; font-weight: 900; color: #3b82f6; text-transform: uppercase; margin-top: -2px; }
@@ -145,17 +146,22 @@
     <% if(players.length > 0) { %>
         <div class="relative flex items-center mb-32 border-y border-white/5 py-12">
             <div class="animate-conveyor gap-10 px-4">
-                <% let displayList = players.length < 5 ? [...players, ...players, ...players, ...players] : [...players, ...players]; %>
-                <% displayList.forEach(p => { 
+                <% 
+                    // To prevent "forever loading" or memory issues, we cap the duplication
+                    let displayList = players;
+                    if (players.length > 0 && players.length < 20) {
+                        displayList = [...players, ...players, ...players, ...players];
+                    }
+                %>
+                <% displayList.forEach((p, index) => { 
                     const hasValidCard = p.cardImage && p.cardImage !== '' && p.cardImage !== 'none';
-                    // Updated Roblox API Link to ensure it pulls correctly
-                    const robloxThumb = `https://www.roblox.com/thumbs/avatar-headshot?username=${encodeURIComponent(p.name)}&width=150&height=150&format=png`;
-                    const finalModalImg = hasValidCard ? p.cardImage : robloxThumb;
+                    // FIXED: Using the primary Avatar Headshot endpoint which is much more stable
+                    const robloxThumb = `https://www.roblox.com/headshot-thumbnail/image?userName=${encodeURIComponent(p.name)}&width=150&height=150&format=png`;
                 %>
                     <div class="player-card w-[260px] h-[360px] glass rounded-[30px] overflow-hidden flex-shrink-0 relative group"
                          onmousemove="tiltCard(event, this)" 
                          onmouseleave="resetTilt(this)"
-                         onclick="openBio(this, '<%= p.name %>', '<%= finalModalImg %>', `<%= (p.experience || p.bio || '').replace(/`/g, '\\`') %>`, '<%= p.discord %>', '<%= p.goals || 0 %>', '<%= p.assists || 0 %>', '<%= p.saves || 0 %>', '<%= p.mvps || 0 %>', '<%= p.views ? p.views.length : 0 %>', '<%= p.position %>', '<%= p.country %>', '<%= p.timezone %>')">
+                         onclick="openBio(this, '<%= p.name %>', '<%= hasValidCard ? p.cardImage : robloxThumb %>', `<%= (p.experience || p.bio || '').replace(/`/g, '\\`') %>`, '<%= p.discord %>', '<%= p.goals || 0 %>', '<%= p.assists || 0 %>', '<%= p.saves || 0 %>', '<%= p.mvps || 0 %>', '<%= p.views ? p.views.length : 0 %>', '<%= p.position %>', '<%= p.country %>', '<%= p.timezone %>')">
                         
                         <% if (!hasValidCard) { %>
                         <div class="rating-badge">
@@ -168,8 +174,10 @@
                             <img src="<%= p.cardImage %>" class="card-img w-full h-full object-cover">
                         <% } else { %>
                             <div class="fallback-container">
-                                <img src="<%= robloxThumb %>" class="fallback-headshot" onerror="this.src='https://www.roblox.com/headshot-thumbnail/image?userName=Roblox&width=150&height=150&format=png'">
-                                <div class="mt-4 text-center">
+                                <img src="<%= robloxThumb %>" 
+                                     class="fallback-headshot" 
+                                     onerror="this.onerror=null;this.src='https://www.roblox.com/headshot-thumbnail/image?userName=Roblox&width=150&height=150&format=png';">
+                                <div class="mt-4 text-center z-10">
                                     <span class="text-blue-500 font-black text-[10px] uppercase tracking-widest"><%= p.country || 'Global' %></span>
                                     <h3 class="text-white font-black text-2xl italic uppercase mt-1"><%= p.name %></h3>
                                 </div>
@@ -361,4 +369,3 @@
         setTimeout(() => { modal.style.display = 'none'; }, 400);
     }
 </script>
-
