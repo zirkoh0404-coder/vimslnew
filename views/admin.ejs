@@ -375,10 +375,31 @@
             <% players.filter(p => p.verified).forEach(player => { %>
                 <details class="player-card group bg-white/[0.03] border border-white/5 rounded-3xl overflow-hidden hover:border-blue-500/30 transition-all" data-name="<%= player.name.toLowerCase() %>">
                     <summary class="p-6 cursor-pointer flex items-center justify-between list-none">
-                         <div class="flex items-center gap-4">
-                            <img src="<%= player.cardImage %>" class="w-12 h-12 rounded-xl object-cover border border-white/10">
-                            <div>
-                                 <p class="font-black text-white uppercase italic"><%= player.name %></p>
+    <div class="flex items-center gap-4">
+        <% 
+            // Fallback: If cardImage is empty or 'none', use Roblox Headshot API
+            let adminPreviewImg = (player.cardImage && player.cardImage !== 'none' && player.cardImage !== '') 
+                ? player.cardImage 
+                : `https://www.roblox.com/headshot-thumbnail/image?userName=${encodeURIComponent(player.name)}&width=420&height=420&format=png`;
+        %>
+        <img src="<%= adminPreviewImg %>" 
+             class="w-12 h-12 rounded-xl object-cover border border-white/10"
+             onerror="this.src='https://www.roblox.com/headshot-thumbnail/image?userName=Roblox&width=420&height=420&format=png'">
+        
+        <div>
+            <p class="font-black text-white uppercase italic"><%= player.name %></p>
+            <p class="text-[10px] text-blue-500 font-bold uppercase tracking-widest"><%= player.position || 'No Position' %></p>
+        </div>
+    </div>
+    <div class="flex items-center gap-4">
+        <span class="text-[10px] font-black px-3 py-1 rounded-full bg-white/5 text-white/40 uppercase tracking-tighter">
+            ID: <%= player._id.toString().slice(-6) %>
+        </span>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white/20 group-open:rotate-180 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+    </div>
+</summary>
                                 <p class="text-[9px] text-blue-400 font-bold uppercase">Verified Pro</p>
                             </div>
                          </div>
@@ -499,4 +520,5 @@
         container.insertAdjacentHTML('beforeend', html);
     }
 </script>
+
 
