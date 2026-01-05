@@ -29,12 +29,13 @@
         animation-play-state: paused;
     }
 
-    /* Grayscale Logic */
-    .card-img {
+    /* Grayscale Logic - Updated to include fallback-container */
+    .card-img, .fallback-container {
         filter: grayscale(100%);
         transition: filter 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s ease;
     }
-    .player-card:hover .card-img {
+    .player-card:hover .card-img, 
+    .player-card:hover .fallback-container {
         filter: grayscale(0%);
         transform: scale(1.05);
     }
@@ -92,7 +93,7 @@
     /* TOGGLE CLASSES */
     .hidden-form { display: none !important; }
 
-    /* NEW FALLBACK SPECIFIC STYLES */
+    /* FALLBACK SPECIFIC STYLES */
     .fallback-container {
         display: flex;
         flex-direction: column;
@@ -100,16 +101,28 @@
         justify-content: center;
         height: 100%;
         background: linear-gradient(to bottom, #1e3a8a, #000);
-        padding-top: 2rem;
+        padding-top: 0rem; /* Adjusted for better centering */
     }
     .fallback-headshot {
-        width: 120px;
-        height: 120px;
+        width: 130px; /* Slightly larger */
+        height: 130px;
         border-radius: 50%;
         border: 4px solid #3b82f6;
-        object-cover: cover;
+        object-fit: cover; /* Fixed property name */
         box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+        background: #000;
     }
+
+    /* RATING BADGE STYLE */
+    .rating-badge {
+        position: absolute;
+        top: 25px;
+        left: 25px;
+        text-align: center;
+        z-index: 5;
+    }
+    .rating-value { font-size: 32px; font-weight: 900; color: white; line-height: 1; font-style: italic; }
+    .rating-label { font-size: 10px; font-weight: 900; color: #3b82f6; text-transform: uppercase; margin-top: -2px; }
 </style>
 
 <% if (typeof error !== 'undefined' && error) { %>
@@ -134,8 +147,8 @@
             <div class="animate-conveyor gap-10 px-4">
                 <% let displayList = players.length < 5 ? [...players, ...players, ...players, ...players] : [...players, ...players]; %>
                 <% displayList.forEach(p => { 
-                    // Robust check for image existence
                     const hasValidCard = p.cardImage && p.cardImage !== '' && p.cardImage !== 'none';
+                    // Updated Roblox API Link to ensure it pulls correctly
                     const robloxThumb = `https://www.roblox.com/headshot-thumbnail/image?userName=${encodeURIComponent(p.name)}&width=150&height=150&format=png`;
                     const finalModalImg = hasValidCard ? p.cardImage : robloxThumb;
                 %>
@@ -144,6 +157,13 @@
                          onmouseleave="resetTilt(this)"
                          onclick="openBio(this, '<%= p.name %>', '<%= finalModalImg %>', `<%= (p.experience || p.bio || '').replace(/`/g, '\\`') %>`, '<%= p.discord %>', '<%= p.goals || 0 %>', '<%= p.assists || 0 %>', '<%= p.saves || 0 %>', '<%= p.mvps || 0 %>', '<%= p.views ? p.views.length : 0 %>', '<%= p.position %>', '<%= p.country %>', '<%= p.timezone %>')">
                         
+                        <% if (!hasValidCard) { %>
+                        <div class="rating-badge">
+                            <div class="rating-value">70</div>
+                            <div class="rating-label"><%= p.position || 'PLA' %></div>
+                        </div>
+                        <% } %>
+
                         <% if (hasValidCard) { %>
                             <img src="<%= p.cardImage %>" class="card-img w-full h-full object-cover">
                         <% } else { %>
