@@ -149,7 +149,7 @@
                 <% displayList.forEach(p => { 
                     const hasValidCard = p.cardImage && p.cardImage !== '' && p.cardImage !== 'none';
                     // Updated Roblox API Link to ensure it pulls correctly
-                    const robloxThumb = `https://www.roblox.com/headshot-thumbnail/image?userName=${encodeURIComponent(p.name)}&width=150&height=150&format=png`;
+                    const robloxThumb = `https://www.roblox.com/thumbs/avatar-headshot?username=${encodeURIComponent(p.name)}&width=150&height=150&format=png`;
                     const finalModalImg = hasValidCard ? p.cardImage : robloxThumb;
                 %>
                     <div class="player-card w-[260px] h-[360px] glass rounded-[30px] overflow-hidden flex-shrink-0 relative group"
@@ -361,3 +361,4 @@
         setTimeout(() => { modal.style.display = 'none'; }, 400);
     }
 </script>
+
